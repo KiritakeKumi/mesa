@@ -192,6 +192,8 @@ PVRDRIFormatToFourCC(int dri_format)
       return DRM_FORMAT_YVYU;
    case __DRI_IMAGE_FORMAT_VYUY:
       return DRM_FORMAT_VYUY;
+   case __DRI_IMAGE_FORMAT_AXBXGXRX106106106106:
+      return DRM_FORMAT_AXBXGXRX106106106106;
    default:
       __driUtilMessage("%s: Unknown format: %d", __func__, dri_format);
       break;
@@ -260,6 +262,8 @@ PVRDRIFourCCToDRIFormat(int iFourCC)
       return __DRI_IMAGE_FORMAT_YVYU;
    case DRM_FORMAT_VYUY:
       return __DRI_IMAGE_FORMAT_VYUY;
+   case DRM_FORMAT_AXBXGXRX106106106106:
+      return __DRI_IMAGE_FORMAT_AXBXGXRX106106106106;
    default:
       __driUtilMessage("%s: Unknown format: %d", __func__, iFourCC);
       break;

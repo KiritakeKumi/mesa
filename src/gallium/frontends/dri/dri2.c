@@ -2594,8 +2594,12 @@ dri2_create_buffer(__DRIscreen * sPriv,
 const struct __DriverAPIRec galliumdrm_driver_api = {
    .InitScreen = dri2_init_screen,
    .DestroyScreen = dri_destroy_screen,
+   .CreateContext = dri_create_context,
+   .DestroyContext = dri_destroy_context,
    .CreateBuffer = dri2_create_buffer,
    .DestroyBuffer = dri_destroy_buffer,
+   .MakeCurrent = dri_make_current,
+   .UnbindContext = dri_unbind_context,
 
    .AllocateBuffer = dri2_allocate_buffer,
    .ReleaseBuffer  = dri2_release_buffer,
@@ -2616,8 +2620,12 @@ static const struct __DRIDriverVtableExtensionRec galliumdrm_vtable = {
 const struct __DriverAPIRec dri_kms_driver_api = {
    .InitScreen = dri_kms_init_screen,
    .DestroyScreen = dri_destroy_screen,
+   .CreateContext = dri_create_context,
+   .DestroyContext = dri_destroy_context,
    .CreateBuffer = dri2_create_buffer,
    .DestroyBuffer = dri_destroy_buffer,
+   .MakeCurrent = dri_make_current,
+   .UnbindContext = dri_unbind_context,
 
    .AllocateBuffer = dri2_allocate_buffer,
    .ReleaseBuffer  = dri2_release_buffer,

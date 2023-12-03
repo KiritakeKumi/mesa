@@ -142,6 +142,7 @@ get_modifier_props(const struct wsi_image_info *info, uint64_t modifier)
 static VkResult
 wsi_create_native_image_mem(const struct wsi_swapchain *chain,
                             const struct wsi_image_info *info,
+                            int display_fd,
                             struct wsi_image *image);
 
 VkResult
@@ -152,6 +153,7 @@ wsi_configure_native_image(const struct wsi_swapchain *chain,
                            const uint64_t *const *modifiers,
                            uint8_t *(alloc_shm)(struct wsi_image *image,
                                                 unsigned size),
+                           int display_fd,
                            struct wsi_image_info *info)
 {
    const struct wsi_device *wsi = chain->wsi;
@@ -160,7 +162,8 @@ wsi_configure_native_image(const struct wsi_swapchain *chain,
       wsi->sw ? VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT :
                 VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT;
 
-   VkResult result = wsi_configure_image(chain, pCreateInfo, handle_type, info);
+   VkResult result = wsi_configure_image(chain, pCreateInfo, handle_type,
+                                         display_fd, info);
    if (result != VK_SUCCESS)
       return result;
 
@@ -290,6 +293,7 @@ fail_oom:
 static VkResult
 wsi_create_native_image_mem(const struct wsi_swapchain *chain,
                             const struct wsi_image_info *info,
+                            int display_fd,
                             struct wsi_image *image)
 {
    const struct wsi_device *wsi = chain->wsi;
@@ -316,9 +320,14 @@ wsi_create_native_image_mem(const struct wsi_swapchain *chain,
       .pNext = NULL,
       .implicit_sync = true,
    };
+   const struct wsi_memory_allocate_info2 memory_wsi_info2 = {
+      .sType = VK_STRUCTURE_TYPE_WSI_MEMORY_ALLOCATE_INFO2_MESA,
+      .pNext = &memory_wsi_info,
+      .display_fd = display_fd,
+   };
    const VkExportMemoryAllocateInfo memory_export_info = {
       .sType = VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO,
-      .pNext = &memory_wsi_info,
+      .pNext = &memory_wsi_info2,
       .handleTypes = wsi->sw ? VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT :
       VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT,
    };
@@ -427,13 +436,14 @@ wsi_create_native_image_mem(const struct wsi_swapchain *chain,
 static VkResult
 wsi_create_prime_image_mem(const struct wsi_swapchain *chain,
                            const struct wsi_image_info *info,
+                           int display_fd,
                            struct wsi_image *image)
 {
    const struct wsi_device *wsi = chain->wsi;
    VkResult result =
       wsi_create_buffer_image_mem(chain, info, image,
                                   VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT,
-                                  true);
+                                  true, display_fd);
    if (result != VK_SUCCESS)
       return result;
 
@@ -459,10 +469,11 @@ VkResult
 wsi_configure_prime_image(UNUSED const struct wsi_swapchain *chain,
                           const VkSwapchainCreateInfoKHR *pCreateInfo,
                           bool use_modifier,
+                          int display_fd,
                           struct wsi_image_info *info)
 {
    VkResult result =
-      wsi_configure_buffer_image(chain, pCreateInfo, info);
+      wsi_configure_buffer_image(chain, pCreateInfo, display_fd, info);
    if (result != VK_SUCCESS)
       return result;
 

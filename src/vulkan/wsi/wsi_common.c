@@ -360,6 +360,7 @@ VkResult
 wsi_configure_image(const struct wsi_swapchain *chain,
                     const VkSwapchainCreateInfoKHR *pCreateInfo,
                     VkExternalMemoryHandleTypeFlags handle_types,
+                    int display_fd,
                     struct wsi_image_info *info)
 {
    memset(info, 0, sizeof(*info));
@@ -418,6 +419,12 @@ wsi_configure_image(const struct wsi_swapchain *chain,
    };
    __vk_append_struct(&info->create, &info->wsi);
 
+   info->wsi2 = (struct wsi_image_create_info2) {
+      .sType = VK_STRUCTURE_TYPE_WSI_IMAGE_CREATE_INFO2_MESA,
+      .display_fd = display_fd,
+   };
+   __vk_append_struct(&info->create, &info->wsi2);
+
    if (pCreateInfo->flags & VK_SWAPCHAIN_CREATE_MUTABLE_FORMAT_BIT_KHR) {
       info->create.flags |= VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT |
                             VK_IMAGE_CREATE_EXTENDED_USAGE_BIT_KHR;
@@ -471,6 +478,7 @@ wsi_destroy_image_info(const struct wsi_swapchain *chain,
 VkResult
 wsi_create_image(const struct wsi_swapchain *chain,
                  const struct wsi_image_info *info,
+                 int display_fd,
                  struct wsi_image *image)
 {
    const struct wsi_device *wsi = chain->wsi;
@@ -485,7 +493,7 @@ wsi_create_image(const struct wsi_swapchain *chain,
    if (result != VK_SUCCESS)
       goto fail;
 
-   result = info->create_mem(chain, info, image);
+   result = info->create_mem(chain, info, display_fd, image);
    if (result != VK_SUCCESS)
       goto fail;
 
@@ -1152,7 +1160,8 @@ wsi_create_buffer_image_mem(const struct wsi_swapchain *chain,
                             const struct wsi_image_info *info,
                             struct wsi_image *image,
                             VkExternalMemoryHandleTypeFlags handle_types,
-                            bool implicit_sync)
+                            bool implicit_sync,
+                            int display_fd)
 {
    const struct wsi_device *wsi = chain->wsi;
    VkResult result;
@@ -1186,9 +1195,14 @@ wsi_create_buffer_image_mem(const struct wsi_swapchain *chain,
       .pNext = NULL,
       .implicit_sync = implicit_sync,
    };
+  const struct wsi_memory_allocate_info2 memory_wsi_info2 = {
+      .sType = VK_STRUCTURE_TYPE_WSI_MEMORY_ALLOCATE_INFO2_MESA,
+      .pNext = &memory_wsi_info,
+      .display_fd = display_fd,
+   };
    const VkExportMemoryAllocateInfo memory_export_info = {
       .sType = VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO,
-      .pNext = &memory_wsi_info,
+      .pNext = &memory_wsi_info2,
       .handleTypes = handle_types,
    };
    const VkMemoryDedicatedAllocateInfo buf_mem_dedicated_info = {
@@ -1347,10 +1361,12 @@ wsi_finish_create_buffer_image(const struct wsi_swapchain *chain,
 VkResult
 wsi_configure_buffer_image(UNUSED const struct wsi_swapchain *chain,
                            const VkSwapchainCreateInfoKHR *pCreateInfo,
+                           int display_fd,
                            struct wsi_image_info *info)
 {
    VkResult result = wsi_configure_image(chain, pCreateInfo,
-                                         0 /* handle_types */, info);
+                                         0 /* handle_types */,
+                                         display_fd, info);
    if (result != VK_SUCCESS)
       return result;
 

@@ -357,7 +357,7 @@ wsi_configure_win32_image(const struct wsi_swapchain *chain,
                           struct wsi_image_info *info)
 {
    VkResult result =
-      wsi_configure_buffer_image(chain, pCreateInfo, info);
+      wsi_configure_buffer_image(chain, pCreateInfo, -1, info);
    if (result != VK_SUCCESS)
       return result;
 
@@ -383,7 +383,7 @@ wsi_win32_image_init(VkDevice device_h,
 {
    assert(chain->base.use_buffer_blit);
    VkResult result = wsi_create_image(&chain->base, &chain->base.image_info,
-                                      &image->base);
+                                      -1, &image->base);
    if (result != VK_SUCCESS)
       return result;
 

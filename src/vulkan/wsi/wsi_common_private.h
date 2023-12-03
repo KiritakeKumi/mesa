@@ -32,6 +32,7 @@ struct wsi_swapchain;
 struct wsi_image_info {
    VkImageCreateInfo create;
    struct wsi_image_create_info wsi;
+   struct wsi_image_create_info2 wsi2;
    VkExternalMemoryImageCreateInfo ext_mem;
    VkImageFormatListCreateInfoKHR format_list;
    VkImageDrmFormatModifierListCreateInfoEXT drm_mod_list;
@@ -57,6 +58,7 @@ struct wsi_image_info {
 
    VkResult (*create_mem)(const struct wsi_swapchain *chain,
                           const struct wsi_image_info *info,
+                          int display_fd,
                           struct wsi_image *image);
 
    VkResult (*finish_create)(const struct wsi_swapchain *chain,
@@ -145,12 +147,14 @@ wsi_configure_native_image(const struct wsi_swapchain *chain,
                            const uint64_t *const *modifiers,
                            uint8_t *(alloc_shm)(struct wsi_image *image,
                                                 unsigned size),
+                           int display_fd,
                            struct wsi_image_info *info);
 
 VkResult
 wsi_configure_prime_image(UNUSED const struct wsi_swapchain *chain,
                           const VkSwapchainCreateInfoKHR *pCreateInfo,
                           bool use_modifier,
+                          int display_fd,
                           struct wsi_image_info *info);
 
 VkResult
@@ -158,7 +162,8 @@ wsi_create_buffer_image_mem(const struct wsi_swapchain *chain,
                             const struct wsi_image_info *info,
                             struct wsi_image *image,
                             VkExternalMemoryHandleTypeFlags handle_types,
-                            bool implicit_sync);
+                            bool implicit_sync,
+                            int display_fd);
 
 VkResult
 wsi_finish_create_buffer_image(const struct wsi_swapchain *chain,
@@ -168,12 +173,14 @@ wsi_finish_create_buffer_image(const struct wsi_swapchain *chain,
 VkResult
 wsi_configure_buffer_image(UNUSED const struct wsi_swapchain *chain,
                            const VkSwapchainCreateInfoKHR *pCreateInfo,
+                           int display_fd,
                            struct wsi_image_info *info);
 
 VkResult
 wsi_configure_image(const struct wsi_swapchain *chain,
                     const VkSwapchainCreateInfoKHR *pCreateInfo,
                     VkExternalMemoryHandleTypeFlags handle_types,
+                    int display_fd,
                     struct wsi_image_info *info);
 void
 wsi_destroy_image_info(const struct wsi_swapchain *chain,
@@ -181,6 +188,7 @@ wsi_destroy_image_info(const struct wsi_swapchain *chain,
 VkResult
 wsi_create_image(const struct wsi_swapchain *chain,
                  const struct wsi_image_info *info,
+                 int display_fd,
                  struct wsi_image *image);
 void
 wsi_destroy_image(const struct wsi_swapchain *chain,

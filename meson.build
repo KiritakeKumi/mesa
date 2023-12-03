@@ -335,7 +335,7 @@ endif
 _platforms = get_option('platforms')
 if _platforms.contains('auto')
   if system_has_kms_drm
-    _platforms = ['x11', 'wayland']
+    _platforms = ['x11', 'wayland', 'null']
   elif ['darwin', 'cygwin'].contains(host_machine.system())
     _platforms = ['x11']
   elif ['haiku'].contains(host_machine.system())
@@ -353,6 +353,7 @@ with_platform_x11 = _platforms.contains('x11')
 with_platform_wayland = _platforms.contains('wayland')
 with_platform_haiku = _platforms.contains('haiku')
 with_platform_windows = _platforms.contains('windows')
+with_platform_null = _platforms.contains('null')
 
 with_glx = get_option('glx')
 if with_glx == 'auto'
@@ -1014,6 +1015,10 @@ if with_platform_android
   ]
 endif
 
+if with_platform_null
+  pre_args += '-DHAVE_NULL_PLATFORM'
+endif
+
 prog_python = import('python').find_installation('python3')
 has_mako = run_command(
   prog_python, '-c',
@@ -1640,7 +1645,8 @@ with_gallium_drisw_kms = false
 dep_libdrm = dependency(
   'libdrm', version : '>=' + _drm_ver,
   # GNU/Hurd includes egl_dri2, without drm.
-  required : (with_dri2 and host_machine.system() != 'gnu') or with_dri3
+  required : (with_dri2 and host_machine.system() != 'gnu') or with_dri3 or
+             with_platform_null
 )
 if dep_libdrm.found()
   pre_args += '-DHAVE_LIBDRM'

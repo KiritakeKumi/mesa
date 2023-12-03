@@ -203,4 +203,31 @@ void DRISUPSetDamageRegion(struct DRISUPDrawable *psDRISUPDrawable,
 
 bool DRISUPHaveGetFenceFromCLEvent(void);
 
+__DRIimage *DRISUPCreateImageFromDMABufs3(struct DRISUPScreen *psDRISUPScreen,
+                                          int iWidth, int iHeight,
+                                          int iFourCC, uint64_t uModifier,
+                                          int *piFDs, int iNumFDs,
+                                          int *piStrides, int *piOffsets,
+                                          unsigned int uColorSpace,
+                                          unsigned int uSampleRange,
+                                          unsigned int uHorizSiting,
+                                          unsigned int uVertSiting,
+                                          uint32_t uFlags,
+                                          unsigned int *puError,
+                                          void *pvLoaderPrivate);
+__DRIimage *DRISUPCreateImageWithModifiers2(struct DRISUPScreen *psDRISUPScreen,
+                                            int iWidth, int iHeight,
+                                            int iFourCC,
+                                            const uint64_t *puModifiers,
+                                            const unsigned int uModifierCount,
+                                            unsigned int uUse,
+                                            void *pvLoaderPrivate);
+__DRIimage *DRISUPCreateImageFromFDs2(struct DRISUPScreen *psDRISUPcreen,
+                                      int iWidth, int iHeight, int iFourCC,
+                                      int *piFDs, int iNumFDs, uint32_t uFlags,
+                                      int *piStrides, int *piOffsets,
+                                      void *pvLoaderPrivate);
+
+bool DRISUPHaveSetInFenceFd(void);
+void DRISUPSetInFenceFd(__DRIimage *psImage, int iFd);
 #endif /* defined(__PVRDRI_SUPPORT_H__) */

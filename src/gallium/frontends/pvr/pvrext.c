@@ -71,7 +71,7 @@
 /* Maximum version numbers for each supported extension */
 #define PVR_DRI_TEX_BUFFER_VERSION      3
 #define PVR_DRI2_FLUSH_VERSION          4
-#define PVR_DRI_IMAGE_VERSION           17
+#define PVR_DRI_IMAGE_VERSION           21
 #define PVR_DRI2_ROBUSTNESS_VERSION     1
 #define PVR_DRI2_FENCE_VERSION          2
 #define PVR_DRI2_RENDERER_QUERY_VERSION 1
@@ -445,6 +445,68 @@ PVRDRICreateImageFromRenderbuffer2(__DRIcontext *psDRIContext,
                                              pvLoaderPrivate, puError);
 }
 
+static __DRIimage *
+PVRDRICreateImageFromDmaBufs3(__DRIscreen *psDRIScreen,
+                              int iWidth, int iHeight,
+                              int iFourCC, uint64_t uModifier,
+                              int *piFDs, int iNumFDs,
+                              int *piStrides, int *piOffsets,
+                              enum __DRIYUVColorSpace eColorSpace,
+                              enum __DRISampleRange eSampleRange,
+                              enum __DRIChromaSiting eHorizSiting,
+                              enum __DRIChromaSiting eVertSiting,
+                              uint32_t uFlags, unsigned int *puError,
+                              void *pvLoaderPrivate)
+{
+   PVRDRIScreen *psPVRScreen = psDRIScreen->driverPrivate;
+
+   return DRISUPCreateImageFromDMABufs3(psPVRScreen->psDRISUPScreen,
+                                        iWidth, iHeight, iFourCC, uModifier,
+                                        piFDs, iNumFDs, piStrides, piOffsets,
+                                        (unsigned int) eColorSpace,
+                                        (unsigned int) eSampleRange,
+                                        (unsigned int) eHorizSiting,
+                                        (unsigned int) eVertSiting,
+                                        uFlags, puError, pvLoaderPrivate);
+}
+
+static __DRIimage *
+PVRDRICreateImageWithModifiers2(__DRIscreen *psDRIScreen,
+                                int iWidth, int iHeight, int iFormat,
+                                const uint64_t *puModifiers,
+                                const unsigned int uModifierCount,
+                                unsigned int uUse,
+                                void *pvLoaderPrivate)
+{
+   PVRDRIScreen *psPVRScreen = psDRIScreen->driverPrivate;
+   int iFourCC = PVRDRIFormatToFourCC(iFormat);
+
+   return DRISUPCreateImageWithModifiers2(psPVRScreen->psDRISUPScreen,
+                                          iWidth, iHeight, iFourCC,
+                                          puModifiers, uModifierCount,
+                                          uUse, pvLoaderPrivate);
+}
+
+static __DRIimage *
+PVRDRICreateImageFromFds2(__DRIscreen *psDRIScreen, int iWidth, int iHeight,
+                          int iFourCC, int *piFDs, int iNumFDs,
+                          uint32_t uFlags, int *piStrides, int *piOffsets,
+                          void *pvLoaderPrivate)
+{
+   PVRDRIScreen *psPVRScreen = psDRIScreen->driverPrivate;
+
+   return DRISUPCreateImageFromFDs2(psPVRScreen->psDRISUPScreen,
+                                    iWidth, iHeight, iFourCC, piFDs, iNumFDs,
+                                    uFlags, piStrides, piOffsets,
+                                    pvLoaderPrivate);
+}
+
+static void
+PVRDRISetInFenceFd(__DRIimage *psImage, int iFd)
+{
+   return DRISUPSetInFenceFd(psImage, iFd);
+}
+
 #if defined(EGL_IMG_cl_image)
 static __DRIimage *
 PVRDRICreateImageFromBuffer(__DRIcontext *psDRIContext, int iTarget,
@@ -486,6 +548,10 @@ static __DRIimageExtension pvrDRIImage = {
    .queryDmaBufFormatModifierAttribs =
    PVRDRIQueryDmaBufFormatModifierAttribs,
    .createImageFromRenderbuffer2 = PVRDRICreateImageFromRenderbuffer2,
+   .createImageFromDmaBufs3 = PVRDRICreateImageFromDmaBufs3,
+   .createImageWithModifiers2 = PVRDRICreateImageWithModifiers2,
+   .createImageFromFds2 = PVRDRICreateImageFromFds2,
+   .setInFenceFd = PVRDRISetInFenceFd,
 #if defined(EGL_IMG_cl_image)
    .createImageFromBuffer = PVRDRICreateImageFromBuffer,
 #endif
@@ -684,8 +750,10 @@ PVRDRIScreenExtensionVersionInfo(void)
 void
 PVRDRIAdjustExtensions(unsigned int uVersion, unsigned int uMinVersion)
 {
+   /* __DRI2fenceExtension adjustment */
    switch (uVersion) {
    default:
+   case 5:
    case 4:
       /* Is the KHR_cl_event2 EGL extension supported? */
       if (!DRISUPHaveGetFenceFromCLEvent())
@@ -699,6 +767,30 @@ PVRDRIAdjustExtensions(unsigned int uVersion, unsigned int uMinVersion)
    case 0:
       /* The KHR_cl_event2 EGL extension is not supported */
       pvrDRIFenceExtension.get_fence_from_cl_event = NULL;
+      break;
+   }
+
+   /* __DRIimageExtension adjustment */
+   switch (uVersion) {
+   default:
+   case 5:
+      if (!DRISUPHaveSetInFenceFd())
+         pvrDRIImage.setInFenceFd = NULL;
+
+      break;
+   case 4:
+   case 3:
+   case 2:
+   case 1:
+   case 0:
+      /*
+       * The following are not supported:
+       *    createImageFromDmaBufs3
+       *    createImageWithModifiers2
+       *    createImageFromFds2
+       *    setInFenceFd
+       */
+      pvrDRIImage.base.version = 17;
       break;
    }
 }

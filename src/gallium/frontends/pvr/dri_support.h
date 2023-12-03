@@ -489,6 +489,52 @@ struct  PVRDRISupportInterfaceV2
 	struct {
 		bool (*HaveGetFenceFromCLEvent)(void);
 	} v4;
+	/* The v5 interface is an extension of v4, so v4 is required as well */
+	struct {
+		__DRIimage *(*CreateImageFromDMABufs3)
+			(struct DRISUPScreen *psDRISUPScreen,
+			 int iWidth,
+			 int iHeight,
+			 int iFourCC,
+			 uint64_t uModifier,
+			 int *piFDs,
+			 int iNumFDs,
+			 int *piStrides,
+			 int *piOffsets,
+			 unsigned int uColorSpace,
+			 unsigned int uSampleRange,
+			 unsigned int uHorizSiting,
+			 unsigned int uVertSiting,
+			 uint32_t uFlags,
+			 unsigned int *puError,
+			 void *pvLoaderPrivate);
+
+		__DRIimage *(*CreateImageWithModifiers2)
+			(struct DRISUPScreen *psDRISUPScreen,
+			 int iWidth,
+			 int iHeight,
+			 int iFourCC,
+			 const uint64_t *puModifiers,
+			 const unsigned int uModifierCount,
+			 unsigned int uUsage,
+			 void *pvLoaderPrivate);
+
+		__DRIimage *(*CreateImageFromFDs2)
+			(struct DRISUPScreen *psDRISUPcreen,
+			 int iWidth,
+			 int iHeight,
+			 int iFourCC,
+			 int *piFDs,
+			 int iNumFDs,
+			 uint32_t uFlags,
+			 int *piStrides,
+			 int *piOffsets,
+			 void *pvLoaderPrivate);
+
+		void (*SetInFenceFD)
+			(__DRIimage *psImage,
+			 int iFD);
+	} v5;
 };
 
 struct PVRDRIImageList {

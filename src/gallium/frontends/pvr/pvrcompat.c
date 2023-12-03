@@ -55,6 +55,10 @@ static pthread_mutex_t gsCompatLock = PTHREAD_MUTEX_INITIALIZER;
       ptr = dlsym(gpvSupLib, MAKESTRING(func)); \
    } while(0)
 
+/* Check if a function exists in the DRI Support interface structure */
+#define HaveFuncV2(field)                       \
+      ((gsSupV2.field) != NULL)                 \
+
 /* Call a function via the DRI Support interface structure */
 #define CallFuncV2(field, ...)                  \
    do {                                         \
@@ -238,6 +242,7 @@ MODSUPRegisterSupportInterfaceV2(const void *pvInterface,
    case 2:
    case 3:
    case 4:
+   case 5:
       /* These versions require version 0 */
       return false;
    default:
@@ -247,6 +252,13 @@ MODSUPRegisterSupportInterfaceV2(const void *pvInterface,
    /* The "default" case should be associated with the latest version */
    switch (uVersion) {
    default:
+   case 5:
+      /* This version is an extension of versions 0 to 4 */
+      if (uMinVersion > 0)
+         return false;
+
+      uEnd = PVRDRIInterfaceV2End(v5);
+      break;
    case 4:
       /* This version is an extension of versions 0 to 3 */
       if (uMinVersion > 0)
@@ -835,4 +847,66 @@ DRISUPHaveGetFenceFromCLEvent(void)
    CallFuncV2(v4.HaveGetFenceFromCLEvent);
 
    return true;
+}
+
+__DRIimage *
+DRISUPCreateImageFromDMABufs3(struct DRISUPScreen *psDRISUPScreen,
+                              int iWidth, int iHeight, int iFourCC,
+                              uint64_t uModifier, int *piFDs, int iNumFDs,
+                              int *piStrides, int *piOffsets,
+                              unsigned int uColorSpace,
+                              unsigned int uSampleRange,
+                              unsigned int uHorizSiting,
+                              unsigned int uVertSiting,
+                              uint32_t uFlags,
+                              unsigned int *puError, void *pvLoaderPrivate)
+{
+   CallFuncV2(v5.CreateImageFromDMABufs3,
+              psDRISUPScreen, iWidth, iHeight, iFourCC, uModifier,
+              piFDs, iNumFDs, piStrides, piOffsets, uColorSpace, uSampleRange,
+              uHorizSiting, uVertSiting, uFlags, puError, pvLoaderPrivate);
+
+   return NULL;
+}
+
+__DRIimage *
+DRISUPCreateImageWithModifiers2(struct DRISUPScreen *psDRISUPScreen,
+                                int iWidth, int iHeight, int iFourCC,
+                                const uint64_t *puModifiers,
+                                const unsigned int uModifierCount,
+                                unsigned int uUse,
+                                void *pvLoaderPrivate)
+{
+   CallFuncV2(v5.CreateImageWithModifiers2,
+              psDRISUPScreen, iWidth, iHeight, iFourCC, puModifiers,
+              uModifierCount, uUse, pvLoaderPrivate);
+
+   return NULL;
+}
+
+__DRIimage *
+DRISUPCreateImageFromFDs2(struct DRISUPScreen *psDRISUPcreen,
+                          int iWidth, int iHeight, int iFourCC,
+                          int *piFDs, int iNumFDs, uint32_t uFlags,
+                          int *piStrides, int *piOffsets,
+                          void *pvLoaderPrivate)
+{
+   CallFuncV2(v5.CreateImageFromFDs2,
+              psDRISUPcreen, iWidth, iHeight, iFourCC, piFDs, iNumFDs,
+              uFlags, piStrides, piOffsets, pvLoaderPrivate);
+
+   return NULL;
+}
+
+bool
+DRISUPHaveSetInFenceFd(void)
+{
+	return HaveFuncV2(v5.SetInFenceFD);
+}
+
+void
+DRISUPSetInFenceFd(__DRIimage *psImage, int iFd)
+{
+   CallFuncV2(v5.SetInFenceFD,
+              psImage, iFd);
 }

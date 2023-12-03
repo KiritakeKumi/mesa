@@ -643,6 +643,11 @@ static const struct gbm_dri_visual gbm_dri_visuals_table[] = {
      { 10, 10, 10, 2 },
    },
    {
+     GBM_FORMAT_AXBXGXRX106106106106, __DRI_IMAGE_FORMAT_AXBXGXRX106106106106,
+     { 6, 22, 38, 54 },
+     { 10, 10, 10, 10 },
+   },
+   {
      GBM_FORMAT_XBGR16161616F, __DRI_IMAGE_FORMAT_XBGR16161616F,
      { 0, 16, 32, -1 },
      { 16, 16, 16, 0 },

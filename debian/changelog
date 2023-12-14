@@ -1,3 +1,11 @@
+mesa (1:21.3.8+2revyos2) unstable; urgency=medium
+
+  * update Mesa 21.3.8
+  * Add pvr patch (ddk 1.17)
+  * Enable pvr dri drivers
+
+ -- kiritake kumi <root@niconiconi.us>  Thu, 14 Dec 2023 17:39:37 +0800
+
 mesa (1:21.2.1+2revyos2) unstable; urgency=medium
 
   * Disable draw-use-llvm
